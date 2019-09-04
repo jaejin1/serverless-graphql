@@ -1,0 +1,42 @@
+service: serverless-graphql-workshop
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: ${opt:stage, 'dev'}
+  region: ap-northeast-1
+  profile: SERVERLESS_WORKSHOP
+
+package:
+  individually: true
+  excludeDevDependencies: false
+
+functions:
+  main:
+    name: ${self:service}-${self:provider.stage}
+    handler: dist/serverless.handler
+    memorySize: 1024
+    timeout: 10
+    environment:
+      NODE_ENV: production
+    package:
+      include:
+        - dist/serverless.js
+      exclude:
+        - '**'
+    events:
+      - http:
+          path: /
+          method: any
+      - http:
+          path: /{proxy+}
+          method: any
+
+plugins:
+  - serverless-apigw-binary
+  - serverless-dotenv-plugin
+
+custom:
+  apigwBinary:
+    types:
+      - '*/*'
